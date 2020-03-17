@@ -1,0 +1,27 @@
+# Construct the mapping of the pixel indices from 95 to 231 
+
+mask="mask-95x95-doNotDelete.txt"
+scaledMask="mask-231x231.txt"
+if [ -f $scaledMask ]
+   /bin/rm $scaledMask
+fi
+
+n=231
+i=1
+j=1
+while ((i <= 231))
+do
+    row_index=`calc int($i/$ratio)+1`
+    while ((j <= 231))
+    do
+	col_index=`calc int($j/$ratio)+1`
+	element=`head -$row_index $mask | tail -1 | awk '{print $col_index}'`
+	line=$line" $element"
+	j=$((j+1))
+    done
+    echo $line >> $scaledMask
+    i=$((i+1))
+done
+
+fitsScaledMask="mask-231x231.fits"
+fimgcreate 16 231,231 $scaledMask $fitsScaledMask clobber=yes
