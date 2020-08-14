@@ -76,16 +76,16 @@ public final class IntegralUtils {
     public static float[][] getNormalisedEffectiveArea(String instrumentName) throws Exception {
 	String filename;
 	if ( instrumentName.equals("ISGRI") ) {
-	    filename = "eff_area_isgri.fits.gz";
+	    filename = "resources/eff_area_isgri.fits.gz";
 	}
 	else if ( instrumentName.equals("SPI") ) {
-	    filename = "eff_area_spi.fits.gz";
+	    filename = "resources/eff_area_spi.fits.gz";
 	}
 	else if ( instrumentName.equals("JEMX1") ) {
-	    filename = "eff_area_jmx1.fits.gz";
+	    filename = "resources/eff_area_jmx1.fits.gz";
 	}
 	else if ( instrumentName.equals("JEMX2") ) {
-	    filename = "eff_area_jmx2.fits.gz";
+	    filename = "resources/eff_area_jmx2.fits.gz";
 	}
 	else {
 	    throw new IntegralException("Instrument: "+instrumentName+" Not recognised");
@@ -129,9 +129,9 @@ public final class IntegralUtils {
     }
 
 
-    public static ArrayList generateImageFileArrayListFromScwIDs(String[] scwIDs, String[] dataDirNames) throws IOException {
+    public static ArrayList<MyFile> generateImageFileArrayListFromScwIDs(String[] scwIDs, String[] dataDirNames) throws IOException {
 	logger.info("Selecting images ...");
-	ArrayList imageFilesArrayList = new ArrayList();
+	ArrayList<MyFile> imageFilesArrayList = new ArrayList<MyFile>();
 	int k=0;
 	String scwID = scwIDs[k];
 	String rev = scwID.substring(0,4);

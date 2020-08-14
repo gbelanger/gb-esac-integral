@@ -14,21 +14,20 @@ import org.apache.log4j.Logger;
 public final class ScwListMaker {
 
     public static Logger logger  = Logger.getLogger(ScwListMaker.class);
-    private static wcscon convert = new wcscon();
 
     public static ScwList makeScwList(double ra, double dec, double distInL, double distInB, int firstRev, int lastRev, File pointLisFile, float[][] normEffArea) throws Exception {
 	AsciiDataFileReader in = new AsciiDataFileReader(pointLisFile);
-	String[] scwNum = (String[]) in.getStrCol(0);
-	double[] pointing_ra = (double[]) in.getDblCol(1);
-	double[] pointing_dec = (double[]) in.getDblCol(2);
-	double[] telapse = (double[]) in.getDblCol(3);
+	String[] scwNum = in.getStrCol(0);
+	double[] pointing_ra = in.getDblCol(1);
+	double[] pointing_dec = in.getDblCol(2);
+	double[] telapse = in.getDblCol(3);
 	return makeScwList(ra, dec, distInL, distInB, firstRev, lastRev, scwNum, pointing_ra, pointing_dec, telapse, normEffArea);
     }
 
     public static ScwList makeScwList(double ra, double dec, double distInL, double distInB, int firstRev, int lastRev, String[] scwNum, double[] pointing_ra, double[] pointing_dec, double[] telapse, float[][] normEffArea) throws Exception {
 	int nscw = scwNum.length;
 	Point2D.Double radec = new Point2D.Double(ra,dec);
-	Point2D.Double lb = convert.fk52gal(radec);
+	Point2D.Double lb = wcscon.fk52gal(radec);
 	double maxDiagDist = Math.sqrt(Math.pow(distInL,2)+Math.pow(distInB,2));
 	double l = lb.getX();
 	double b = lb.getY();
@@ -60,7 +59,7 @@ public final class ScwListMaker {
 	    boolean revRangeOK = ( revNum <= lastRev && revNum >= firstRev );
 	    // Max angular distance
 	    Point2D.Double pointing_radec = new Point2D.Double(pointing_ra[i], pointing_dec[i]);
-	    Point2D.Double pointing_lb = convert.fk52gal(pointing_radec);
+	    Point2D.Double pointing_lb = wcscon.fk52gal(pointing_radec);
 	    WorldCoords pointingCoords = new WorldCoords(pointing_radec);
 	    double dist = sourceCoords.dist(pointingCoords);
 	    int distInPix = (new Double(Math.rint(dist/4.35))).intValue(); // each pix has a size of 4.35'
@@ -126,7 +125,7 @@ public final class ScwListMaker {
 	double[] durations = new double[m];
 	double[] effectiveExps = new double[m];
 	for ( int i=0; i < m; i++ ) {
-	    ids[i] = (String) selectedIDsList.get(i);
+	    ids[i] = selectedIDsList.get(i);
 	    ras[i] = (double) selectedRasList.get(i);
 	    decs[i] = (double) selectedDecsList.get(i);
 	    durations[i] = (double) selectedDurationsList.get(i);

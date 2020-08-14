@@ -1,6 +1,7 @@
 package gb.esac.integral;
 
 import gb.esac.tools.MinMax;
+import gb.esac.tools.Converter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -21,16 +22,22 @@ public class MakeNormEffAreaImage {
 
     public static void main(String[] args) throws Exception   {
 
-	String eff_area_filename = "eff_area_ibis.fits.gz";
+	String eff_area_filename = "resources/eff_area_isgri.fits.gz";
 	if ( args.length == 1 ) {
 	    eff_area_filename = args[0];
 	}
-	String instrument = "ibis";
-	if ( eff_area_filename.contains("ibis") ) instrument = "ibis";
+	String instrument = "isgri";
+	if ( eff_area_filename.contains("isgri") ) instrument = "isgri";
 	else if ( eff_area_filename.contains("spi") ) instrument = "spi";
+	else if ( eff_area_filename.contains("jmx1") ) instrument = "jmx1";
+	else if ( eff_area_filename.contains("jmx2") ) instrument = "jmx2";		
 	else {
-	    logger.error("Unknown instrument: did not find 'ibis' or 'spi' in filename");
+	    logger.error("Unknown instrument: did not find 'isgri', 'spi', 'jmx1', 'jmx2' in filename");
 	    System.exit(-1);
+	}
+	if (instrument.equals("jmx1") || instrument.equals("jmx2")) {
+		logger.info("Effective area for JMX is already normalised. Nothing to do.");
+		System.exit(0);
 	}
 
 	//  Read effective area file
@@ -38,9 +45,16 @@ public class MakeNormEffAreaImage {
 	BufferedDataInputStream effAreaFileAsStream = new BufferedDataInputStream(new FileInputStream(eff_area_filename));	    
 	Fits effAreaFits = new Fits(effAreaFileAsStream, isGzipped(eff_area_filename));
 	int exten = 0;
-	if ( instrument == "spi" ) exten = 2;
+	if ( instrument.equals("spi") ) exten = 2;
 	ImageHDU effAreaHDU = (ImageHDU) effAreaFits.getHDU(exten);
-	float[][] effArea = (float[][]) effAreaHDU.getKernel();
+	float[][] effArea;
+	try {
+		effArea = (float[][]) effAreaHDU.getKernel();
+	}
+	catch (ClassCastException e) {
+		double[][] dbl = (double[][]) effAreaHDU.getKernel();
+		effArea = Converter.double2float(dbl);
+	}
 
 	//  Determine min and max values
 	float min = MinMax.getMin(effArea);
@@ -74,23 +88,24 @@ public class MakeNormEffAreaImage {
 
 	double crpix;
 	double cdelt1, cdelt2;
-	String outputName = "norm_eff_area_ibis.fits";
+	String outputName = "norm_eff_area_isgri.fits";
 	double rotationAngle = -11.3*Math.PI/180;
-	// For IBIS
-	if ( instrument == "ibis" ) {
-	    head.addValue("INSTRUME", "IBIS", "Telescope or mission name");
+	// For isgri
+	if (instrument.equals("isgri")) {
+	    head.addValue("INSTRUME", "isgri", "Telescope or mission name");
 	    crpix = 200.5;
 	    cdelt1 = 0.0822862539155913;
 	    cdelt2 = 0.0822862539155913;
 	}
 	// For SPI
-	else {
+	else { //(instrument.equals("spi")) {
 	    head.addValue("INSTRUME", "SPI", "Telescope or mission name");
 	    crpix = 126.0;
 	    cdelt1 = 0.2;
 	    cdelt2 = 0.2;
 	    outputName = "norm_eff_area_spi.fits";
 	}
+
 	double xscale = cdelt1;
 	double yscale = cdelt2;
 	double cd1_1 = xscale*Math.cos(rotationAngle);
